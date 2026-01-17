@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="Enter city name" spellcheck="false">
+            <button>
+                <img src="https://th.bing.com/th/id/OIP.A2spgxgAo9hlKteaQpzEkwHaHa?w=200&h=200&c=7&r=0&o=7&dpr=1.5&pid=1.7">
+            </button>
+        </div>
+
+        <div class="error" style="display: none;">
+            <p>Invalid City Name</p>
+        </div>
+
+        <div class="weather">
+            <img class="weather-icon" src="https://cdn3.iconfinder.com/data/icons/sunnyday-2/142/full_Cloudy_medium_rain-1024.png">
+            <h1 class="temp">--°C</h1>
+            <h2 class="city">City Name</h2>
+            <div class="details">
+                <div class="col">
+                    <img src="https://cdn0.iconfinder.com/data/icons/weather-forecast-18/40/Precipitation_Humidity_Waves_Water_Weather_Forecast-512.png">
+                    <div>
+                        <p class="humidity">--%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="https://th.bing.com/th/id/R.646edcdf14db1dd55261c10f5a93611c?rik=IAx1jy1vOFYbnQ&riu=http%3a%2f%2fgetdrawings.com%2ffree-icon%2fwind-direction-icon-52.png&ehk=U7tRNECG7vpOdsSM3huSSRb6PRvoE0g5MCfp6t40y9k%3d&risl=&pid=ImgRaw&r=0">
+                    <div>
+                        <p class="wind">-- km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "b9279be043e45fabdf5b265c8d40bd6d";
+        const searchBox = document.querySelector(".search input");
+        const searchBtn = document.querySelector(".search button");
+        const weatherIcon = document.querySelector(".weather-icon");
+        const card = document.querySelector(".card");
+
+        // Check time and update background
+        function updateBackgroundByTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            
+            // 7 PM to 6 AM (19 to 6) - night mode
+            if (hours >= 19 || hours < 6) {
+                card.classList.add("night-mode");
+            } else {
+                card.classList.remove("night-mode");
+            }
+        }
+
+        // Call initially and then every minute
+        updateBackgroundByTime();
+        setInterval(updateBackgroundByTime, 60000);
+
+        async function checkWeather(city) {
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+
+            const response = await fetch(apiUrl);
+
+            if (response.status === 404) {
+                document.querySelector(".error").style.display = "block";
+                document.querySelector(".weather").style.display = "none";
+                return;
+            } else {
+                document.querySelector(".error").style.display = "none";
+                document.querySelector(".weather").style.display = "block";
+            }
+
+            const data = await response.json();
+
+            document.querySelector(".city").textContent = data.name;
+            document.querySelector(".temp").textContent = Math.round(data.main.temp) + "°C";
+            document.querySelector(".humidity").textContent = data.main.humidity + "%";
+            document.querySelector(".wind").textContent = data.wind.speed + " km/h";
+
+            const weatherCondition = data.weather[0].main;
+
+            if (weatherCondition === "Clouds") {
+                weatherIcon.src = "https://cdn3.iconfinder.com/data/icons/weather-344/142/cloudy-512.png";
+            } else if (weatherCondition === "Clear") {
+                weatherIcon.src = "https://cdn3.iconfinder.com/data/icons/weather-344/142/sun-512.png";
+            } else if (weatherCondition === "Rain") {
+                weatherIcon.src = "https://cdn3.iconfinder.com/data/icons/weather-344/142/rain-512.png";
+            } else if (weatherCondition === "Drizzle") {
+                weatherIcon.src = "https://cdn3.iconfinder.com/data/icons/weather-344/142/sunny-512.png";
+            } else if (weatherCondition === "Mist") {
+                weatherIcon.src = "https://cdn3.iconfinder.com/data/icons/weather-344/142/fog-512.png";
+            }
+        }
+
+        searchBtn.addEventListener("click", () => {
+            const city = searchBox.value.trim();
+            if (city !== "") {
+                checkWeather(city);
+            }
+        });
+
+        searchBox.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                const city = searchBox.value.trim();
+                if (city !== "") {
+                    checkWeather(city);
+                }
+            }
+        });
+
+        checkWeather("Jaipur"); // Default city on load
+    </script>
+</body>
+</html>
